@@ -60,7 +60,7 @@ public class SearchControllers : ControllerBase
             new
             {
                 results = result.Results,
-                pagCount = result.PageCount,
+                pageCount = result.PageCount,
                 totalCount = result.TotalCount
             }
         );
