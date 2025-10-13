@@ -1,14 +1,17 @@
+
 import React from 'react';
-import Search from './Search';
-import Logo from './Logo';
+import NavBarMobile from './NavMobile';
+import { getCurrentUser } from '../actions/authAcation';
 
 
-export default function NavBar() {
+
+
+export default async function NavBar() {
+    const user = await getCurrentUser();
+
     return (
-        <header className=' sticky top-0 z-50 flex h-16 w-full items-center justify-between bg-white px-4 shadow-md'>
-            <Logo />
-            <Search />
-            <div>Login</div>
+        <header className="sticky top-0 z-50 bg-white shadow-md">
+            <NavBarMobile user={user} />
         </header>
-    )
+    );
 }

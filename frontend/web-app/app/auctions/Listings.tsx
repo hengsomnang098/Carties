@@ -46,7 +46,7 @@ export default function Listings() {
   if (!data) return <h3>Loading...</h3>;
 
   return (
-    <div className="container mx-auto">
+    <>
       <Filters />
       {
         data.totalCount === 0 ? (
@@ -74,6 +74,6 @@ export default function Listings() {
         )
       }
 
-    </div>
+    </>
   );
 }
