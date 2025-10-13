@@ -7,14 +7,15 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  // logging:{
-  //   fetches:{
-  //     fullUrl:true
-  //   }
-  // },
+  logging:{
+    fetches:{
+      fullUrl:true
+    }
+  },
   images: {
     remotePatterns: [
-      {protocol: 'https', hostname: 'cdn.pixabay.com'}
+      {protocol: 'https', hostname: 'cdn.pixabay.com'},
+      
     ],
     formats: ['image/webp', 'image/avif'],
   },

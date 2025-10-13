@@ -1,45 +1,79 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import AuctionCard from './AuctionCard';
-import { Auction } from '@/types';
+import { Auction, PagedResult } from '@/types';
 import AppPagination from '../components/AppPagination';
 import { getData } from '../actions/auctionActions';
 import Filters from './Filters';
+import { useParamsStore } from '@/hooks/useParamStore';
+import { useShallow } from 'zustand/shallow';
+import qs from 'query-string';
+import EmptyFilter from '../components/EmptyFilter';
 
+export default function Listings() {
+  const [data, setData] = useState<PagedResult<Auction>>();
 
-export default  function Listings() {
-  const [auctions,setAuctions] = useState<Auction[]>([]);
-  const [pageCount,setPageCount] = useState(0);
-  const [pageNumber,setPageNumber] = useState(1);
-  const [pageSize,setPageSize] = useState(4);
+  const params = useParamsStore(
+    useShallow((state) => ({
+      pageNumber: state.pageNumber,
+      pageSize: state.pageSize,
+      searchTerm: state.searchTerm,
+      orderBy: state.orderBy,
+    }))
+  );
 
-  useEffect(()=>{
-    getData(pageNumber, pageSize).then((res)=>{
-      setAuctions(res.results);
-      setPageCount(res.pageCount);
-    }); 
-  },[pageNumber, pageSize]);
+  const setParams = useParamsStore((state) => state.setParams);
 
-  if(auctions.length === 0) {
-    return <div>Loading...</div>;
+  const url = qs.stringifyUrl(
+    {
+      url: '',
+      query: params,
+    },
+    { skipEmptyString: true }
+  );
+
+  function setPageNumber(pageNumber: number) {
+    setParams({ pageNumber });
   }
 
+
+  useEffect(() => {
+    getData(url).then((data) => {
+      setData(data);
+    });
+  }, [url]);
+
+  if (!data) return <h3>Loading...</h3>;
+
   return (
-    <>
-      <Filters pageSize={pageSize} setPageSize={setPageSize}/>
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
-        {auctions && auctions.map((auction: Auction, index: number) => (
-          <AuctionCard
-            key={auction.id}
-            auction={auction}
-            priority={index < 4} // Prioritize first 4 cards for LCP optimization
-          />
-        ))}
-      </div>
-      {/* pagination */}
-      <div className='flex justify-center mt-8'>
-        <AppPagination currentPage={pageNumber} pageCount={pageCount} pageChanged ={setPageNumber} />
-      </div>
-    </>
+    <div className="container mx-auto">
+      <Filters />
+      {
+        data.totalCount === 0 ? (
+          <EmptyFilter showReset />
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {data ? (
+                data.results.map((auction: Auction) => (
+                  <AuctionCard key={auction.id} auction={auction} />
+                ))
+              ) : (
+                <h3 className="text-red-500">No Car</h3>
+              )}
+            </div>
+            {/* pagination */}
+            <div className="flex justify-center mt-8">
+              <AppPagination
+                currentPage={params.pageNumber}
+                pageCount={data.pageCount}
+                pageChanged={setPageNumber}
+              />
+            </div>
+          </>
+        )
+      }
+
+    </div>
   );
 }
