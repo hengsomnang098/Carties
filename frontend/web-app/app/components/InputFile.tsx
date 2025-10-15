@@ -2,7 +2,8 @@
 
 import { Label, HelperText, FileInput as FBFileInput } from "flowbite-react";
 import { useController, UseControllerProps } from "react-hook-form";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import Image from "next/image";
 
 type Props = {
   label?: string;
@@ -17,7 +18,7 @@ export default function InputFile(props: Props) {
 
   const convertToWebP = useCallback(async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
+      const img = new window.Image();
       const reader = new FileReader();
 
       reader.onload = (e) => {
@@ -81,7 +82,14 @@ export default function InputFile(props: Props) {
     },
     [field, convertToWebP]
   );
-
+  
+  // Update preview if field.value changes (e.g., when editing a form)
+  useEffect(() => {
+    if (field.value && typeof field.value === "string") {
+      setPreview(field.value);
+    }
+  }, [field.value]);
+  
   return (
     <div className="mb-3 block">
       {props.showLabel && (
@@ -99,10 +107,18 @@ export default function InputFile(props: Props) {
 
       {preview && (
         <div className="mt-2">
-          <img
+          {/* <img
             src={preview}
             alt="Preview"
             className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+          /> */}
+          <Image 
+            src={preview}
+            alt="Preview"
+            width={100}
+            height={100}
+            className="w-full h-full object-cover rounded-lg border border-gray-200"
+            priority
           />
         </div>
       )}

@@ -11,6 +11,8 @@ export async function getDetailedViewData(id:string):Promise<Auction> {
   return FetchWrapper.get(`auctions/${id}`);
 }
 
+
+// testing auction with auth
 export async function updateAuctionTest():Promise<{status:number,message:string}> {
   const data ={
     mileage:Math.floor(Math.random() * 100000)+1,
@@ -22,4 +24,12 @@ export async function updateAuctionTest():Promise<{status:number,message:string}
 
 export async function createAuction(data:FieldValues){
   return FetchWrapper.post('auctions',data);
+}
+
+export  async function updateAuction(id:string,data:FieldValues){
+  return FetchWrapper.put(`auctions/${id}`,data);
+}
+
+export async function deleteAuction(id: string) {
+    return FetchWrapper.del(`auctions/${id}`);
 }

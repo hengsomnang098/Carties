@@ -21,7 +21,7 @@ public class AuctionsController : ControllerBase
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IFileUploadService _fileUploadService;
 
-    public AuctionsController(AuctionDbContext context, IMapper mapper, IPublishEndpoint publishEndpoint,IFileUploadService fileUploadService)
+    public AuctionsController(AuctionDbContext context, IMapper mapper, IPublishEndpoint publishEndpoint, IFileUploadService fileUploadService)
     {
         _context = context;
         _mapper = mapper;
@@ -97,13 +97,27 @@ public class AuctionsController : ControllerBase
 
     [Authorize]
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateAuction(Guid id, UpdateAuctionDto updateAuctionDto)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult> UpdateAuction(Guid id, [FromForm] UpdateAuctionDto updateAuctionDto)
     {
         var auction = await _context.Auctions.Include(x => x.Item).FirstOrDefaultAsync(x => x.Id == id);
         if (auction == null) return NotFound();
 
 
         if (auction.Seller != User.Identity.Name) return Forbid();
+
+        if (updateAuctionDto.ImageUrl != null)
+        {
+            // 🧹 Delete the old image from BunnyCDN
+            if (!string.IsNullOrEmpty(auction.Item.ImageUrl))
+            {
+                await _fileUploadService.DeleteFromBunnyCdnAsync(auction.Item.ImageUrl);
+            }
+
+            // 📤 Upload the new image
+            var newImageUrl = await _fileUploadService.UploadToBunnyCdnAsync(updateAuctionDto.ImageUrl, "auctions");
+            auction.Item.ImageUrl = newImageUrl;
+        }
 
         auction.Item.Make = updateAuctionDto.Make ?? auction.Item.Make;
         auction.Item.Model = updateAuctionDto.Model ?? auction.Item.Model;
@@ -121,11 +135,23 @@ public class AuctionsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAuction(Guid id)
     {
-        var auction = await _context.Auctions.FindAsync(id);
+        var auction = await _context.Auctions
+       .Include(x => x.Item)
+       .FirstOrDefaultAsync(x => x.Id == id);
         if (auction == null) return NotFound();
 
 
+
+
         if (auction.Seller != User.Identity.Name) return Forbid();
+
+        // 🧹 Delete the image from BunnyCDN
+        // 🧹 Delete the image from BunnyCDN
+        if (!string.IsNullOrEmpty(auction.Item?.ImageUrl))
+        {
+            await _fileUploadService.DeleteFromBunnyCdnAsync(auction.Item.ImageUrl);
+        }
+
         _context.Auctions.Remove(auction);
         await _publishEndpoint.Publish(new AuctionDeleted() { Id = auction.Id.ToString() });
         var result = await _context.SaveChangesAsync() > 0;
