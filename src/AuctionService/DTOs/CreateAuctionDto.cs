@@ -15,7 +15,7 @@ public class CreateAuctionDto
     [Required]
     public int Mileage { get; set; }
     [Required]
-    public string ImageUrl { get; set; }
+    public IFormFile ImageUrl { get; set; }
     [Required]
     public int ReservePrice { get; set; }
     [Required]

@@ -11,9 +11,9 @@ export default async function Session() {
                 <h3 className='text-lg'> Session Data</h3>
                 <pre className=' whitespace-pre-wrap break-all'>{JSON.stringify(session, null, 2)}</pre>
             </div>
-           <div className='mr-4'>
-             <AuthTest />
-           </div>
+            <div className='mr-4 mt-2'>
+                <AuthTest />
+            </div>
         </>
     )
 }

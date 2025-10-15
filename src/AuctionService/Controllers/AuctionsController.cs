@@ -1,6 +1,7 @@
 using AuctionService.Data;
 using AuctionService.DTOs;
 using AuctionService.Entities;
+using AuctionService.Services;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Contracts;
@@ -18,12 +19,14 @@ public class AuctionsController : ControllerBase
     private readonly AuctionDbContext _context;
     private readonly IMapper _mapper;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IFileUploadService _fileUploadService;
 
-    public AuctionsController(AuctionDbContext context, IMapper mapper, IPublishEndpoint publishEndpoint)
+    public AuctionsController(AuctionDbContext context, IMapper mapper, IPublishEndpoint publishEndpoint,IFileUploadService fileUploadService)
     {
         _context = context;
         _mapper = mapper;
         _publishEndpoint = publishEndpoint;
+        _fileUploadService = fileUploadService;
     }
 
     // api/auctions
@@ -59,13 +62,23 @@ public class AuctionsController : ControllerBase
         return _mapper.Map<AuctionDto>(auction);
     }
 
+
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto createAuctionDto)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<AuctionDto>> CreateAuction([FromForm] CreateAuctionDto createAuctionDto)
     {
         var auction = _mapper.Map<Auction>(createAuctionDto);
-        
+
+
         auction.Seller = User.Identity.Name;
+
+        if (createAuctionDto.ImageUrl != null)
+        {
+            var imageUrl = await _fileUploadService.UploadToBunnyCdnAsync(createAuctionDto.ImageUrl, "auctions");
+            auction.Item.ImageUrl = imageUrl;
+        }
+
         _context.Auctions.Add(auction);
 
         var newAuction = _mapper.Map<AuctionDto>(auction);
@@ -89,8 +102,8 @@ public class AuctionsController : ControllerBase
         var auction = await _context.Auctions.Include(x => x.Item).FirstOrDefaultAsync(x => x.Id == id);
         if (auction == null) return NotFound();
 
-       
-        if(auction.Seller != User.Identity.Name) return Forbid();
+
+        if (auction.Seller != User.Identity.Name) return Forbid();
 
         auction.Item.Make = updateAuctionDto.Make ?? auction.Item.Make;
         auction.Item.Model = updateAuctionDto.Model ?? auction.Item.Model;
@@ -111,8 +124,8 @@ public class AuctionsController : ControllerBase
         var auction = await _context.Auctions.FindAsync(id);
         if (auction == null) return NotFound();
 
-       
-        if(auction.Seller != User.Identity.Name) return Forbid();
+
+        if (auction.Seller != User.Identity.Name) return Forbid();
         _context.Auctions.Remove(auction);
         await _publishEndpoint.Publish(new AuctionDeleted() { Id = auction.Id.ToString() });
         var result = await _context.SaveChangesAsync() > 0;

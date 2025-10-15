@@ -56,6 +56,10 @@ services:
       - RabbitMq__Host=rabbitmq
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AuctionDb;Username=postgres;Password=postgrespw
       - IdentityServerURL=http://identity-svc
+      - BunnyCdn__StorageZoneName=hengsomnang
+      - BunnyCdn__AccessKey=72c7fa5b-cc98-466d-841989d51269-85b2-4641
+      - BunnyCdn__RegionUrl=https://sg.storage.bunnycdn.com
+      - BunnyCdn__CdnBaseUrl=https://techhl.b-cdn.net
     ports:
       - 7001:80
     depends_on:

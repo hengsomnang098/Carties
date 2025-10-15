@@ -15,7 +15,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {protocol: 'https', hostname: 'cdn.pixabay.com'},
-      
+      {protocol: 'https', hostname: 'images.unsplash.com'},
+      {protocol: 'https', hostname: 'techhl.b-cdn.net'},
     ],
     formats: ['image/webp', 'image/avif'],
   },

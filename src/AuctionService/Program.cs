@@ -1,5 +1,6 @@
 using AuctionService.Consumers;
 using AuctionService.Data;
+using AuctionService.Services;
 using Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,6 +18,10 @@ builder.Services.AddDbContext<AuctionDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+// add bunny cdn service
+builder.Services.AddScoped<IFileUploadService, BunnyCdnService>();
+
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

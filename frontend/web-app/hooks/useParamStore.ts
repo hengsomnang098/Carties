@@ -7,6 +7,8 @@ type State = {
     searchTerm: string;
     orderBy: string;   
     filterBy: string;
+    seller?:string;
+    winner?:string;
 
 }
 
@@ -22,6 +24,8 @@ const initialState: State = {
     searchTerm: '',
     orderBy: 'make',
     filterBy: 'live',
+    seller: undefined,
+    winner: undefined,
   
 }
 
